@@ -2,7 +2,6 @@ from spack.package import *
 from spack.util.executable import which
 from spack.error import InstallError
 import os
-import re
 
 
 class Multiwfn(Package):
