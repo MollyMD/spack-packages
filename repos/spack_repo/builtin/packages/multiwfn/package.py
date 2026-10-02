@@ -1,7 +1,8 @@
+import os
+from spack.error import InstallError
 from spack.package import *
 from spack.util.executable import which
-from spack.error import InstallError
-import os
+
 
 
 class Multiwfn(Package):
@@ -200,10 +201,10 @@ class Multiwfn(Package):
                     stripped = line.strip()
                     if stripped.startswith(key + "="):
                         if "//" in line:
-                            code, comment = line.split("//", 1)
+                            _, comment = line.split("//", 1)
                             comment = "//" + comment
                         else:
-                            code, comment = line, ""
+                            comment = ""
                         indent = line[: len(line) - len(line.lstrip())]
                         val_str = f'"{value}"' if quote else str(value)
                         new_line = f"{indent}{key}= {val_str} {comment}\n"
@@ -258,9 +259,12 @@ class Multiwfn(Package):
                 f"""#!/bin/bash
 ulimit -s unlimited
 export OMP_STACKSIZE=200M
-mkdir -p "${HOME}/spack_Multiwfnpath_settings_ini/"
-test -f "{prefix}/settings.ini" && cp -n "{prefix}/settings.ini" "${HOME}/spack_Multiwfnpath_settings_ini/" || true
-export Multiwfnpath="${HOME}/spack_Multiwfnpath_settings_ini/"
+export HOME="${HOME:-$(getent passwd "$(id -u)" | cut -d: -f6)}"
+mkdir -p "$HOME/spack_Multiwfnpath_settings_ini/"
+if test -f "{prefix}/settings.ini"; then
+    cp -n "{prefix}/settings.ini" "$HOME/spack_Multiwfnpath_settings_ini/" || true
+fi
+export Multiwfnpath="$HOME/spack_Multiwfnpath_settings_ini/"
 exec "{real_exe}" "$@"
 """
             )
@@ -270,6 +274,4 @@ exec "{real_exe}" "$@"
     def setup_run_environment(self, env):
         env.prepend_path("PATH", self.prefix.bin)
         env.set("OMP_STACKSIZE", "200M")
-        env.set(
-            "Multiwfnpath", os.path.expanduser("~/spack_Multiwfnpath_settings_ini/")
-        )
+        env.set("Multiwfnpath", os.path.expanduser("~/spack_Multiwfnpath_settings_ini/"))
