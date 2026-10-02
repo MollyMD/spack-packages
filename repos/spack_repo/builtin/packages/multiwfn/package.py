@@ -48,51 +48,6 @@ class Multiwfn(Package):
     # GUI
     variant("gui", default=False, description="Enable GUI (requires Motif)")
 
-    # External program support (switch + path)
-    variant("gaussian", default=False, description="Enable Gaussian support")
-    variant(
-        "gaupath",
-        default="",
-        values=str,
-        description=(
-            "Path to Gaussian executable (g16/g09 or a user-defined executable name). "
-            "Such as +gaussian gaupath=/sob/g16/g16"
-        ),
-    )
-
-    variant("orca", default=False, description="Enable ORCA support")
-    variant(
-        "orcapath",
-        default="",
-        values=str,
-        description=(
-            "Path to ORCA executable (orca or a user-defined executable name). "
-            "Such as +orca orcapath=/path/to/orca"
-        ),
-    )
-
-    variant("orca_2mkl", default=False, description="Enable orca_2mkl support")
-    variant(
-        "orca_2mklpath",
-        default="",
-        values=str,
-        description=(
-            "Path to orca_2mkl executable (orca_2mkl or a user-defined executable name). "
-            "Such as +orca_2mkl orca_2mklpath=/sob/orca/orca_2mkl"
-        ),
-    )
-
-    variant("formchk", default=False, description="Enable formchk support")
-    variant(
-        "formchkpath",
-        default="",
-        values=str,
-        description=(
-            "Path to Gaussian formchk executable (formchk or a user-defined executable name). "
-            "Such as +formchk formchkpath=/sob/g16/formchk"
-        ),
-    )
-
     # Versions
     version(
         "2026.3.27-nogui",
@@ -111,22 +66,6 @@ class Multiwfn(Package):
 
     depends_on("unzip", type="build")
     depends_on("motif", when="+gui")
-
-    # Parameter validation
-    def validate(self):
-        spec = self.spec
-
-        if spec.variants["gaupath"].value and "+gaussian" not in spec:
-            raise InstallError("gaupath requires +gaussian")
-
-        if spec.variants["orcapath"].value and "+orca" not in spec:
-            raise InstallError("orcapath requires +orca")
-
-        if spec.variants["orca_2mklpath"].value and "+orca_2mkl" not in spec:
-            raise InstallError("orca_2mklpath requires +orca_2mkl")
-
-        if spec.variants["formchkpath"].value and "+formchk" not in spec:
-            raise InstallError("formchkpath requires +formchk")
 
     # Install
     def install(self, spec, prefix):
@@ -183,16 +122,6 @@ class Multiwfn(Package):
                 except (subprocess.CalledProcessError, OSError, ValueError):
                     return 4
 
-            def resolve_exe(user_path, names):
-                if user_path:
-                    p = which(user_path)
-                    return p.path if p else user_path
-                for n in names:
-                    p = which(n)
-                    if p:
-                        return p.path
-                return None
-
             def replace_or_add(lines, key, value, quote=False):
                 """Replace or add key=value in settings.ini while preserving comments."""
                 new_lines = []
@@ -220,27 +149,6 @@ class Multiwfn(Package):
             # Set nthreads to the number of physical cores
             nthreads = get_physical_cores()
             lines = replace_or_add(lines, "nthreads", nthreads, quote=False)
-
-            # Write the external program paths
-            if "+gaussian" in spec:
-                p = resolve_exe(spec.variants["gaupath"].value, ["g16", "g09"])
-                if p:
-                    lines = replace_or_add(lines, "gaupath", p, quote=True)
-
-            if "+orca" in spec:
-                p = resolve_exe(spec.variants["orcapath"].value, ["orca"])
-                if p:
-                    lines = replace_or_add(lines, "orcapath", p, quote=True)
-
-            if "+orca_2mkl" in spec:
-                p = resolve_exe(spec.variants["orca_2mklpath"].value, ["orca_2mkl"])
-                if p:
-                    lines = replace_or_add(lines, "orca_2mklpath", p, quote=True)
-
-            if "+formchk" in spec:
-                p = resolve_exe(spec.variants["formchkpath"].value, ["formchk"])
-                if p:
-                    lines = replace_or_add(lines, "formchkpath", p, quote=True)
 
             # Write back to settings.ini
             with open(settings, "w") as f:
