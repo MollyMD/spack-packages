@@ -42,7 +42,7 @@ class Multiwfn(Package):
 
     homepage = "http://sobereva.com/multiwfn/"
     maintainers("MollyMD")
-    license("see LICENSE INFORMATION in the description")
+    license("LicenseRef-Multiwfn")
 
     # GUI
     variant("gui", default=False, description="Enable GUI (requires Motif)")
@@ -51,7 +51,7 @@ class Multiwfn(Package):
     variant("gaussian", default=False, description="Enable Gaussian support")
     variant(
         "gaupath",
-        default="/sob/g16/g16",
+        default="",
         values=str,
         description=(
             "Path to Gaussian executable (g16/g09 or a user-defined executable name). "
@@ -62,18 +62,18 @@ class Multiwfn(Package):
     variant("orca", default=False, description="Enable ORCA support")
     variant(
         "orcapath",
-        default="D:\study\orca5\orca.exe",
+        default="",
         values=str,
         description=(
             "Path to ORCA executable (orca or a user-defined executable name). "
-            "Such as +orca orcapath=D:\study\orca5\orca.exe"
+            "Such as +orca orcapath=/path/to/orca"
         ),
     )
 
     variant("orca_2mkl", default=False, description="Enable orca_2mkl support")
     variant(
         "orca_2mklpath",
-        default="/sob/orca/orca_2mkl",
+        default="",
         values=str,
         description=(
             "Path to orca_2mkl executable (orca_2mkl or a user-defined executable name). "
@@ -84,7 +84,7 @@ class Multiwfn(Package):
     variant("formchk", default=False, description="Enable formchk support")
     variant(
         "formchkpath",
-        default="/sob/g16/formchk",
+        default="",
         values=str,
         description=(
             "Path to Gaussian formchk executable (formchk or a user-defined executable name). "
@@ -165,7 +165,7 @@ class Multiwfn(Package):
 
                 try:
                     output = subprocess.check_output(
-                        "lscpu -p=CPU,Core,Socket", shell=True, text=True
+                        ["lscpu", "-p=CPU,Core,Socket"], text=True
                     )
                     cores = set()
                     for line in output.splitlines():
@@ -184,11 +184,12 @@ class Multiwfn(Package):
 
             def resolve_exe(user_path, names):
                 if user_path:
-                    return user_path
+                    p = which(user_path)
+                    return p.path if p else user_path
                 for n in names:
                     p = which(n)
                     if p:
-                        return p
+                        return p.path
                 return None
 
             def replace_or_add(lines, key, value, quote=False):
@@ -257,9 +258,9 @@ class Multiwfn(Package):
                 f"""#!/bin/bash
 ulimit -s unlimited
 export OMP_STACKSIZE=200M
-mkdir -p ~/spack_Multiwfnpath_settings_ini/
-cp -n "{prefix}/settings.ini" ~/spack_Multiwfnpath_settings_ini/
-export Multiwfnpath="~/spack_Multiwfnpath_settings_ini/"
+mkdir -p "${HOME}/spack_Multiwfnpath_settings_ini/"
+test -f "{prefix}/settings.ini" && cp -n "{prefix}/settings.ini" "${HOME}/spack_Multiwfnpath_settings_ini/" || true
+export Multiwfnpath="${HOME}/spack_Multiwfnpath_settings_ini/"
 exec "{real_exe}" "$@"
 """
             )
