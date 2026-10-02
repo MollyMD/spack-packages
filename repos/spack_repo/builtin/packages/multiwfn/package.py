@@ -165,7 +165,7 @@ class Multiwfn(Package):
 
                 try:
                     output = subprocess.check_output(
-                        ["lscpu", "-p=CPU,Core,Socket"], text=True
+                        ["lscpu", "-p=CPU,Core,Socket"], universal_newlines=True
                     )
                     cores = set()
                     for line in output.splitlines():
