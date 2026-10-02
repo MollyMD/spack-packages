@@ -1,8 +1,8 @@
 import os
+
 from spack.error import InstallError
 from spack.package import *
 from spack.util.executable import which
-
 
 
 class Multiwfn(Package):
@@ -180,7 +180,7 @@ class Multiwfn(Package):
                         cores.add((socket_id, core_id))
                     n_cores = len(cores)
                     return max(1, n_cores)
-                except Exception:
+                except (subprocess.CalledProcessError, OSError, ValueError):
                     return 4
 
             def resolve_exe(user_path, names):
@@ -259,12 +259,12 @@ class Multiwfn(Package):
                 f"""#!/bin/bash
 ulimit -s unlimited
 export OMP_STACKSIZE=200M
-export HOME="${HOME:-$(getent passwd "$(id -u)" | cut -d: -f6)}"
-mkdir -p "$HOME/spack_Multiwfnpath_settings_ini/"
+settings_dir = os.path.expanduser("~/spack_Multiwfnpath_settings_ini/")
+mkdir -p "{settings_dir}"
 if test -f "{prefix}/settings.ini"; then
-    cp -n "{prefix}/settings.ini" "$HOME/spack_Multiwfnpath_settings_ini/" || true
+    cp -n "{prefix}/settings.ini" "{settings_dir}" || true
 fi
-export Multiwfnpath="$HOME/spack_Multiwfnpath_settings_ini/"
+export Multiwfnpath="{settings_dir}"
 exec "{real_exe}" "$@"
 """
             )
