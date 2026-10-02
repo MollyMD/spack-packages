@@ -252,6 +252,7 @@ class Multiwfn(Package):
         set_executable(real_exe)
 
         mkdirp(prefix.bin)
+        settings_dir = os.path.expanduser("~/spack_Multiwfnpath_settings_ini/")
         wrapper = os.path.join(prefix.bin, exe_name)
 
         with open(wrapper, "w") as f:
@@ -259,7 +260,6 @@ class Multiwfn(Package):
                 f"""#!/bin/bash
 ulimit -s unlimited
 export OMP_STACKSIZE=200M
-settings_dir = os.path.expanduser("~/spack_Multiwfnpath_settings_ini/")
 mkdir -p "{settings_dir}"
 if test -f "{prefix}/settings.ini"; then
     cp -n "{prefix}/settings.ini" "{settings_dir}" || true
