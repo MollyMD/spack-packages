@@ -50,19 +50,19 @@ class Multiwfn(Package):
 
     # Versions
     version(
-        "2026.3.27-nogui",
-        url="http://sobereva.com/multiwfn/misc/Multiwfn_2026.3.27_bin_Linux_noGUI.zip",
-        sha256="cd8e90b501066783d9dd340b032329b27c76fb5bd39a0e2a056cad9adfb6b656",
+        "2026.10.1-nogui",
+        url="http://sobereva.com/multiwfn/misc/Multiwfn_2026.10.1_bin_Linux_noGUI.zip",
+        sha256="96a4ba4be280f5ae4f63dd66a75dfe60084a8c46d06674e74f6f253d8db97aa5",
     )
 
     version(
-        "2026.3.27-gui",
-        url="http://sobereva.com/multiwfn/misc/Multiwfn_2026.3.27_bin_Linux.zip",
-        sha256="4f3d6290eb384a06b369b97f56df57e47ebbb0d23bcb59f73d24de9e986a8dae",
+        "2026.10.1-gui",
+        url="http://sobereva.com/multiwfn/misc/Multiwfn_2026.10.1_bin_Linux.zip",
+        sha256="df6f571abeb9470b9815d1eef6b97b5bf7dc8acd80649a8136e019b9ec1be484",
     )
 
-    conflicts("~gui", when="@2026.3.27-gui")
-    conflicts("+gui", when="@2026.3.27-nogui")
+    conflicts("~gui", when="@2026.10.1-gui")
+    conflicts("+gui", when="@2026.10.1-nogui")
 
     depends_on("unzip", type="build")
     depends_on("motif", when="+gui")
@@ -183,3 +183,5 @@ exec "{real_exe}" "$@"
         env.prepend_path("PATH", self.prefix.bin)
         env.set("OMP_STACKSIZE", "200M")
         env.set("Multiwfnpath", os.path.expanduser("~/spack_Multiwfnpath_settings_ini/"))
+        if self.spec.satisfies("+gui"):
+            env.prepend_path("LD_LIBRARY_PATH", self.spec["motif"].prefix.lib)
